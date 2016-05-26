@@ -72,8 +72,12 @@
                             <p>Inventory buffer:</p>
                             <input name="inventory_buffer" type="number" min="0" max="10" step="1" value="${inventory_buffer}" size="6">
                             <br><br><br>
-                            <p>Non-Inventoried SKUs & Notes in items:</p>
+                            <p>SKUs & Notes exclusion</p>
                             <textarea placeholder="One per line..." name="nonInventoriedSKUs" rows="4" cols="30">${nonInventoriedSKUs}</textarea>
+                            <br><br><br>
+                            <p>Use the following inventory bins:</p>
+                            <p>MAIN <input name="mainBin" id="switch-size" autocomplete="off" type="checkbox" ${mainBin} data-size="mini"></p>
+                            <p>RTL04_STF <input name="sgMainBin" id="switch-size" autocomplete="off" type="checkbox" ${sgMainBin} data-size="mini"></p>
                         </td>
                     </tr>
                     <tr>

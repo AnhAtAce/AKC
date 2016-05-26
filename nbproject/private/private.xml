@@ -3,8 +3,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/C:/Users/an2/Documents/NetBeansProjects/AKC/web/amazon_inventory_module_settings.jsp</file>
             <file>file:/C:/Users/an2/Documents/NetBeansProjects/AKC/src/java/com/quartz/QuartzListener.java</file>
             <file>file:/C:/Users/an2/Documents/NetBeansProjects/AKC/src/java/com/quartz/AmazonUpdateQtyJob.java</file>
+            <file>file:/C:/Users/an2/Documents/NetBeansProjects/AKC/src/java/AMZ/AmazonInventoryModuleSettings.java</file>
         </group>
     </open-files>
 </project-private>

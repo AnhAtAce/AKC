@@ -113,11 +113,14 @@ public class AmazonInventoryModuleSettings extends HttpServlet {
             emails = request.getParameter("emails");
             settings.put("nonInventoriedSKUs", request.getParameter("nonInventoriedSKUs"));
             settings.put("emails", (emails.replace(AKC_Creds.ANH_EMAIL, "") + "\r\n"+AKC_Creds.ANH_EMAIL).replace("\r\n\r\n", "\r\n").trim());
+            settings.put("mainBin",request.getParameter("mainBin") == null ? "unchecked" : "checked") ;
+            settings.put("sgMainBin",request.getParameter("sgMainBin") == null ? "unchecked" : "checked");
             String[] times = request.getParameterValues("time");
             
                 //for testing purposes, will launch task the next minute
                 GregorianCalendar launchTime = new GregorianCalendar();
-                launchTime.add(Calendar.MINUTE, 1);
+                int o = launchTime.get(Calendar.MINUTE)/5;
+                launchTime.set(Calendar.MINUTE, o*5+5);
                 SimpleDateFormat out = new SimpleDateFormat("h:mm a");
                 String[] testTimes = new String[times.length+1];
                 System.arraycopy(times, 0, testTimes, 0, times.length);
@@ -145,7 +148,7 @@ public class AmazonInventoryModuleSettings extends HttpServlet {
                 }
             }
             
-            if (TextFileReadWrite.writeFile(settings.toString(), settingsFile)) {
+            if (TextFileReadWrite.writeFile(settings.toString(3), settingsFile)) {
                 System.out.println("Saved settings\r\n" + settings.toString(3));
             } else {
                 System.out.println("Saving settings failed");

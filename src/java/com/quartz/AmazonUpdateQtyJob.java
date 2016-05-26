@@ -44,9 +44,10 @@ public class AmazonUpdateQtyJob implements Job {
             amzListings = new JSONObject(TextFileReadWrite.readJSONFile(listingsFile)).getJSONArray("Listings");
 
             JSONObject item;
-            String childSku, inventoried;
+            String childSku;
             JSONArray childSkus, fbmListings = new JSONArray(), childSkusArray;
             JSONObject childSkuJSONObject;
+            int rowCounter;
             if (DBController.createConnection()) {
                 System.err.println(inUTC.format(new Date()) + " >>> Getting inventory data from Everest database.");
                 String nonInventoriedSKUs = settings.getString("nonInventoriedSKUs");
@@ -57,6 +58,7 @@ public class AmazonUpdateQtyJob implements Job {
                         childSkus = item.getJSONArray("ChildSKUs");
                         childSkusArray = new JSONArray();
                         for (int j = 0; j < childSkus.length(); j++) {
+                            rowCounter = 0;
                             childSku = childSkus.getString(j);
                             childSkuJSONObject = new JSONObject();
                             if (!nonInventoriedSKUs.contains(childSku)) {
@@ -82,14 +84,20 @@ public class AmazonUpdateQtyJob implements Job {
                                                 childSkusArray.put(kItem);
                                             }
                                         } else if (itemQtyResultSet.getInt(5) == 0) {
+                                            rowCounter++;
                                             childSkuJSONObject.put("ItemCode", childSku);
-                                            inventoried = itemQtyResultSet.getString(4);
-                                            childSkuJSONObject.put("Inventoried", inventoried);
+                                            childSkuJSONObject.put("Inventoried", itemQtyResultSet.getString(4));
                                             if (itemQtyResultSet.getString(3) != null) {
                                                 childSkuJSONObject.put(itemQtyResultSet.getString(3), itemQtyResultSet.getDouble(2));
                                             }
-                                            childSkusArray.put(childSkuJSONObject);
                                         }
+                                    }
+                                    if (rowCounter > 0) {
+                                        childSkusArray.put(childSkuJSONObject);
+                                    } else {
+                                        childSkuJSONObject.put(childSku, "not exist in Everest");
+                                        childSkuJSONObject.put("Inventoried", "F");
+                                        childSkusArray.put(childSkuJSONObject);
                                     }
                                 } catch (SQLException ex) {
                                     System.err.println(ex.getMessage());
@@ -99,6 +107,37 @@ public class AmazonUpdateQtyJob implements Job {
 
                             }
                         }
+
+                        int amzQty = Integer.valueOf(item.getString("quantity"));
+                        int bufferQty = settings.getInt("inventory_buffer");
+                        int actualQty = 0, lowestQty = 999;
+                        JSONObject s;
+                        String oosItems = "";
+                        for (int q = 0; q < childSkusArray.length(); q++) {
+                            s = childSkusArray.getJSONObject(q);
+                            if (s.getString("").equalsIgnoreCase("F")) {
+                                continue;
+                            }
+                            if (settings.getString("mainBin").equalsIgnoreCase("checked")) {
+                                if(s.has("MAIN")){
+                                    actualQty += s.getInt("MAIN");
+                                }
+                            }
+                            if (settings.getString("sgMainBin").equalsIgnoreCase("checked")) {
+                                if (s.has("RTL04_STF")) {
+                                    actualQty += s.getInt("RTL04_STF");
+                                }
+                            }
+                            if ((actualQty - bufferQty) <= 0) {
+                                //out of stock
+                                item.put("newQty", 0);
+                                oosItems += s.getString("ItemCode");
+                            }
+                        }
+                        if (!item.has("newQty")) {
+                            item.put("newQty", lowestQty - bufferQty);
+                        }
+                        item.put("oosChildren", oosItems);
 
                         item.put("ChildSKUs", childSkusArray);
                         fbmListings.put(item);
